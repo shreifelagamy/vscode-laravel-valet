@@ -4,12 +4,17 @@
     "description": "Support Laravel valet",
     "icon": "media/logo.png",
     "version": "0.0.1",
+    "publisher": "shashraf",
     "engines": {
         "vscode": "^1.84.0"
     },
     "categories": [
         "Other"
     ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/shreifelagamy/vscode-laravel-valet.git"
+    },
     "activationEvents": [],
     "main": "./out/extension.js",
     "contributes": {
