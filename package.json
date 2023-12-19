@@ -1,0 +1,191 @@
+{
+    "name": "laravel-valet",
+    "displayName": "laravel Valet",
+    "description": "Support Laravel valet",
+    "icon": "media/logo.png",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.84.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [],
+    "main": "./out/extension.js",
+    "contributes": {
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "laravel-valet",
+                    "title": "Laravel Valet",
+                    "icon": "media/laravel-valet.svg"
+                }
+            ]
+        },
+        "views": {
+            "laravel-valet": [
+                {
+                    "id": "laravel-valet-main",
+                    "name": "Valet",
+                    "type": "webview"
+                },
+                {
+                    "id": "laravel-valet-links",
+                    "name": "Links"
+                },
+                {
+                    "id": "laravel-valet-php-versions",
+                    "name": "PHP versions"
+                },
+                {
+                    "id": "laravel-valet-paths",
+                    "name": "Paths"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "laravel-valet.refreshLinks",
+                "title": "Laravel Valet: Refresh links",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "laravel-valet.refreshVersions",
+                "title": "Laravel Valet: Refresh versions",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "laravel-valet.refreshPaths",
+                "title": "Laravel Valet: Refresh paths",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "laravel-valet.openLink",
+                "title": "Laravel Valet: Open",
+                "icon": "$(link-external)"
+            },
+            {
+                "command": "laravel-valet.secure",
+                "title": "Laravel Valet: Secure",
+                "icon": "$(lock)"
+            },
+            {
+                "command": "laravel-valet.unsecure",
+                "title": "Laravel Valet: Unsecure",
+                "icon": "$(unlock)"
+            },
+            {
+                "command": "laravel-valet.openPath",
+                "title": "Laravel Valet: Open",
+                "icon": "$(link-external)"
+            },
+            {
+                "command": "laravel-valet.isolate",
+                "title": "Laravel Valet: Isolate",
+                "icon": "$(debug-disconnect)"
+            },
+            {
+                "command": "laravel-valet.unlink",
+                "title": "Laravel Valet: Unlink",
+                "icon": "$(notebook-delete-cell)"
+            },
+            {
+                "command": "laravel-valet.link",
+                "title": "Laravel Valet: Link"
+            },
+            {
+                "command": "laravel-valet.log",
+                "title": "Laravel Valet: Log"
+            },
+            {
+                "command": "laravel-valet.restart",
+                "title": "Laravel Valet: Restart"
+            },
+            {
+                "command": "laravel-valet.stop",
+                "title": "Laravel Valet: Stop"
+            },
+            {
+                "command": "laravel-valet.start",
+                "title": "Laravel Valet: Start"
+            }
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "laravel-valet.refreshLinks",
+                    "when": "view == laravel-valet-links",
+                    "group": "navigation"
+                },
+                {
+                    "command": "laravel-valet.refreshVersions",
+                    "when": "view == laravel-valet-php-versions",
+                    "group": "navigation"
+                },
+                {
+                    "command": "laravel-valet.refreshPaths",
+                    "when": "view == laravel-valet-paths",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "laravel-valet.openLink",
+                    "when": "view == laravel-valet-links",
+                    "group": "inline"
+                },
+                {
+                    "command": "laravel-valet.secure",
+                    "when": "view == laravel-valet-links && viewItem == link-unsecured",
+                    "group": "inline@2"
+                },
+                {
+                    "command": "laravel-valet.unsecure",
+                    "when": "view == laravel-valet-links && viewItem == link-secured",
+                    "group": "inline@2"
+                },
+                {
+                    "command": "laravel-valet.openPath",
+                    "when": "view == laravel-valet-paths",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "laravel-valet.isolate",
+                    "when": "view == laravel-valet-php-versions",
+                    "group": "inline"
+                },
+                {
+                    "command": "laravel-valet.unlink",
+                    "when": "view == laravel-valet-links",
+                    "group": "inline@3"
+                }
+            ]
+        },
+        "viewsWelcome": [
+            {
+                "view": "laravel-valet",
+                "contents": "In order to use git features, you can open a folder containing a git repository or clone from a URL.\n[Open Folder](command:vscode.openFolder)\n[Clone Repository](command:git.clone)\nTo learn more about how to use git and source control in VS Code [read our docs](https://aka.ms/vscode-scm)."
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "yarn run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "yarn run compile && yarn run lint",
+        "lint": "eslint src --ext ts",
+        "test": "node ./out/test/runTest.js"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.84.0",
+        "@types/mocha": "^10.0.3",
+        "@types/node": "18.x",
+        "@typescript-eslint/eslint-plugin": "^6.9.0",
+        "@typescript-eslint/parser": "^6.9.0",
+        "eslint": "^8.52.0",
+        "glob": "^10.3.10",
+        "mocha": "^10.2.0",
+        "typescript": "^5.2.2",
+        "@vscode/test-electron": "^2.3.6"
+    }
+}
