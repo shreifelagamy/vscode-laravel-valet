@@ -7,9 +7,6 @@ export default class ValetPathsTreeView extends ValetCommonTreeView implements v
 
     constructor(projectsList: any) {
         super(projectsList);
-
-        vscode.commands.registerCommand('laravel-valet.refreshPaths', () => this.refresh());
-        vscode.commands.registerCommand('laravel-valet.openPath', (element) => vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(element.path), true));
     }
 
     refresh(): void {

@@ -12,7 +12,6 @@ export default class ValetLinksTreeView extends ValetCommonTreeView implements v
     constructor(projectsList: any) {
         super(projectsList);
 
-        vscode.commands.registerCommand('laravel-valet.refreshLinks', () => this.refresh());
         vscode.commands.registerCommand('laravel-valet.openLink', (element) => vscode.env.openExternal(vscode.Uri.parse(element.link)));
     }
 

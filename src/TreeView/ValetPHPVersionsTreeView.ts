@@ -8,8 +8,6 @@ export default class ValetPHPVersionsTreeView extends ValetCommonTreeView implem
 
     constructor(projectsList: any) {
         super(projectsList);
-
-        vscode.commands.registerCommand('laravel-valet.refreshVersions', () => this.refresh());
     }
 
     refresh(): void {

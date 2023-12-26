@@ -1,9 +1,9 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import logCommand from './Commands/logCommand';
 import isolatePHPVersionCommand from './Commands/isolatePHPVersionCommand';
 import linkProject from './Commands/linkProjectCommand';
+import logCommand from './Commands/logCommand';
 import restartCommand from './Commands/restartCommand';
 import secureCommand from './Commands/secureCommand';
 import startCommand from './Commands/startCommand';
@@ -15,6 +15,7 @@ import ValetPHPVersionsTreeView from './TreeView/ValetPHPVersionsTreeView';
 import ValetPathsTreeView from './TreeView/ValetPathsTreeView';
 import MainWebView from './Webview/MainWebView';
 import getValetList from './utils/GetValetList';
+import openCommand from './Commands/openCommand';
 
 export const data = {
     projectslist: getValetList()
@@ -26,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
     let linksTreeProvider = new ValetLinksTreeView(projectslist);
     let phpVersionTreeProvider = new ValetPHPVersionsTreeView(projectslist);
     let pathsTreeProvider = new ValetPathsTreeView(projectslist);
-    let mainWebview = new MainWebView(currentProjects, context);
+    let mainWebview = new MainWebView(projectslist, context);
 
     let commands = [
         vscode.commands.registerCommand('laravel-valet.link', linkProject),
@@ -38,11 +39,11 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('laravel-valet.restart', restartCommand),
         vscode.commands.registerCommand('laravel-valet.start', startCommand),
         vscode.commands.registerCommand('laravel-valet.stop', stopCommand),
+        vscode.commands.registerCommand('laravel-valet.openPath', openCommand),
     ]
 
     vscode.tasks.onDidEndTask((e) => {
         let projectslist = data.projectslist = getValetList();
-        currentProjects = projectslist?.filter((project) => project.isCurrent);
 
         switch (e.execution.task.name) {
             case 'linking':
@@ -52,18 +53,18 @@ export function activate(context: vscode.ExtensionContext) {
                 linksTreeProvider.reassignProjects(projectslist).refresh();
                 phpVersionTreeProvider.reassignProjects(projectslist).refresh();
                 pathsTreeProvider.reassignProjects(projectslist).refresh();
-                mainWebview.updateAndRefresh(currentProjects);
+                mainWebview.updateAndRefresh(projectslist);
                 break;
 
             case 'isolatePHPVersion':
                 phpVersionTreeProvider.reassignProjects(projectslist).refresh();
-                mainWebview.updateAndRefresh(currentProjects);
+                mainWebview.updateAndRefresh(projectslist);
                 break;
 
             case 'secureLink':
             case 'unsecureLink':
                 linksTreeProvider.reassignProjects(projectslist).refresh();
-                mainWebview.updateAndRefresh(currentProjects);
+                mainWebview.updateAndRefresh(projectslist);
                 break
         }
     })

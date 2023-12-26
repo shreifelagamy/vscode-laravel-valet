@@ -15,7 +15,6 @@ export default function getValetList() {
     }[] | undefined;
 
     if (result) {
-        console.log('enterd');
         let pathsArr = [];
 
         for (let index = 0; index < result.length; index += 2) {

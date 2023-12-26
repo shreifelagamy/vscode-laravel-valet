@@ -116,23 +116,6 @@
             }
         ],
         "menus": {
-            "view/title": [
-                {
-                    "command": "laravel-valet.refreshLinks",
-                    "when": "view == laravel-valet-links",
-                    "group": "navigation"
-                },
-                {
-                    "command": "laravel-valet.refreshVersions",
-                    "when": "view == laravel-valet-php-versions",
-                    "group": "navigation"
-                },
-                {
-                    "command": "laravel-valet.refreshPaths",
-                    "when": "view == laravel-valet-paths",
-                    "group": "navigation"
-                }
-            ],
             "view/item/context": [
                 {
                     "command": "laravel-valet.openLink",
