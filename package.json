@@ -3,7 +3,7 @@
     "displayName": "laravel Valet",
     "description": "Support Laravel valet",
     "icon": "media/logo.png",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "shashraf",
     "engines": {
         "vscode": "^1.84.0"
