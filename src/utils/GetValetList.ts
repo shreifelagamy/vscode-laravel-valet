@@ -29,9 +29,13 @@ export default function getValetList() {
                 key: element.key.replace("//", ""),
                 value: element.value
             };
-        });
+        });      
+        
+        let versions = [...output.toString().matchAll(/php@([0-9.0-9]+)/gm)];
 
-        let versions = [...output.toString().matchAll(/php@([0-9.0-9]+)/gm)]
+        if(versions.length === 0) {
+            versions = [...output.toString().matchAll(/([0-9]+\.[0-9]+)/gm)];
+        }
 
         projectslist = JSON.stringify(output.toString()).match(/https?:[^\s|]+/gm)?.map((link, index) => {
             let name = [...link.matchAll(/^https?:\/\/([^.]+)\./gm)]
