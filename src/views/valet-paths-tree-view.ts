@@ -1,13 +1,10 @@
 import * as vscode from 'vscode';
-import ValetCommonTreeView from './ValetCommonTreeView';
+import type { ValetProject } from '../types/valet';
+import ValetCommonTreeView from './valet-common-tree-view';
 
 export default class ValetPathsTreeView extends ValetCommonTreeView implements vscode.TreeDataProvider<Dependency> {
-    private _onDidChangeTreeData: vscode.EventEmitter<Dependency | undefined | void> = new vscode.EventEmitter<Dependency | undefined | void>();
-    readonly onDidChangeTreeData: vscode.Event<Dependency | undefined | void> = this._onDidChangeTreeData.event;
-
-    constructor(projectsList: any) {
-        super(projectsList);
-    }
+    private _onDidChangeTreeData: vscode.EventEmitter<Dependency | undefined> = new vscode.EventEmitter<Dependency | undefined>();
+    readonly onDidChangeTreeData: vscode.Event<Dependency | undefined> = this._onDidChangeTreeData.event;
 
     refresh(): void {
         this._onDidChangeTreeData.fire();
@@ -23,16 +20,18 @@ export default class ValetPathsTreeView extends ValetCommonTreeView implements v
                 viewId: 'laravel-valet-paths'
             },
             title: "Loading paths...",
-        }, async (progress) => {
+        }, async () => {
             return new Promise((resolve) => {
-                let paths: Dependency[] = [];
+                const paths: Dependency[] = [];
 
-                this._projectslist?.forEach(project => {
-                    paths?.push(new Dependency(project.name, project.path, vscode.TreeItemCollapsibleState.None));
-                });
+                if (this._projectslist) {
+                    for (const project of this._projectslist) {
+                        paths.push(new Dependency(project.name, project.path, vscode.TreeItemCollapsibleState.None));
+                    }
+                }
 
-                resolve(paths)
-            })
+                resolve(paths);
+            });
         });
 
         return paths;

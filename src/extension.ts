@@ -1,98 +1,56 @@
-'use strict';
-
 import * as vscode from 'vscode';
-import isolatePHPVersionCommand from './Commands/isolatePHPVersionCommand';
-import linkProject from './Commands/linkProjectCommand';
-import logCommand from './Commands/logCommand';
-import restartCommand from './Commands/restartCommand';
-import secureCommand from './Commands/secureCommand';
-import startCommand from './Commands/startCommand';
-import stopCommand from './Commands/stopCommand';
-import unlinkCommand from './Commands/unlinkCommand';
-import unsecureCommand from './Commands/unsecureCommand';
-import ValetLinksTreeView from './TreeView/ValetLinksTreeView';
-import ValetPHPVersionsTreeView from './TreeView/ValetPHPVersionsTreeView';
-import ValetPathsTreeView from './TreeView/ValetPathsTreeView';
-import MainWebView from './Webview/MainWebView';
-import getValetList from './utils/GetValetList';
-import openCommand from './Commands/openCommand';
+import { registerCommands } from './commands/registerCommands';
+import { getValetProjects } from './services/valet-projects';
+import { getEventBus } from './support/event-bus';
+import { info } from './support/logger';
+import MainWebView from './views/main-web-view';
+import ValetLinksTreeView from './views/valet-links-tree-view';
+import ValetPathsTreeView from './views/valet-paths-tree-view';
+import ValetPHPVersionsTreeView from './views/valet-php-versions-tree-view';
 
-export const data = {
-    projectslist: getValetList()
-}
+export async function activate(context: vscode.ExtensionContext) {
+    let projects = await getValetProjects();
 
-export function activate(context: vscode.ExtensionContext) {
-    let projectslist = data.projectslist;
-    let currentProjects = projectslist?.filter((project) => project.isCurrent);
-    let linksTreeProvider = new ValetLinksTreeView(projectslist);
-    let phpVersionTreeProvider = new ValetPHPVersionsTreeView(projectslist);
-    let pathsTreeProvider = new ValetPathsTreeView(projectslist);
-    let mainWebview = new MainWebView(projectslist, context);
+    // Register Commands
+    registerCommands(context);
 
-    let commands = [
-        vscode.commands.registerCommand('laravel-valet.link', linkProject),
-        vscode.commands.registerCommand('laravel-valet.unlink', unlinkCommand),
-        vscode.commands.registerCommand('laravel-valet.secure', secureCommand),
-        vscode.commands.registerCommand('laravel-valet.unsecure', unsecureCommand),
-        vscode.commands.registerCommand('laravel-valet.isolate', isolatePHPVersionCommand),
-        vscode.commands.registerCommand('laravel-valet.log', logCommand),
-        vscode.commands.registerCommand('laravel-valet.restart', restartCommand),
-        vscode.commands.registerCommand('laravel-valet.start', startCommand),
-        vscode.commands.registerCommand('laravel-valet.stop', stopCommand),
-        vscode.commands.registerCommand('laravel-valet.openPath', openCommand),
-    ]
+    // Register Webview
+    const mainProvider = new MainWebView(projects, context);
 
-    vscode.tasks.onDidEndTask((e) => {
-        let projectslist = data.projectslist = getValetList();
+    // Register Tree Views
+    const linksProvider = new ValetLinksTreeView(projects);
+    const pathsProvider = new ValetPathsTreeView(projects);
+    const phpVersionsProvider = new ValetPHPVersionsTreeView(projects);
 
-        switch (e.execution.task.name) {
-            case 'linking':
-            case 'unlinking':
-            case 'stop':
-            case 'start':
-                linksTreeProvider.reassignProjects(projectslist).refresh();
-                phpVersionTreeProvider.reassignProjects(projectslist).refresh();
-                pathsTreeProvider.reassignProjects(projectslist).refresh();
-                mainWebview.updateAndRefresh(projectslist);
-                break;
+    // Register providers in VSCode
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider('laravel-valet-main', mainProvider),
+        vscode.window.registerTreeDataProvider('laravel-valet-links', linksProvider),
+        vscode.window.registerTreeDataProvider('laravel-valet-paths', pathsProvider),
+        vscode.window.registerTreeDataProvider('laravel-valet-php-versions', phpVersionsProvider),
+    );
 
-            case 'isolatePHPVersion':
-                phpVersionTreeProvider.reassignProjects(projectslist).refresh();
-                mainWebview.updateAndRefresh(projectslist);
-                break;
-
-            case 'secureLink':
-            case 'unsecureLink':
-                linksTreeProvider.reassignProjects(projectslist).refresh();
-                mainWebview.updateAndRefresh(projectslist);
-                break
+    // Set up refresh listener
+    const eventBus = getEventBus();
+    const refreshHandler = async () => {
+        projects = await getValetProjects();
+        if (projects) {
+            mainProvider.updateAndRefresh(projects);
+            linksProvider.reassignProjects(projects);
+            pathsProvider.reassignProjects(projects);
+            phpVersionsProvider.reassignProjects(projects);
         }
-    })
+    };
+    eventBus.on('valet:refresh', refreshHandler);
 
-    // Register commands
-    context.subscriptions.push(...commands)
-
+    // Add cleanup to remove event listener
     context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider('laravel-valet-main', mainWebview)
-    );
-
-    context.subscriptions.push(
-        vscode.window.createTreeView('laravel-valet-links', {
-            treeDataProvider: linksTreeProvider
+        new vscode.Disposable(() => {
+            eventBus.off('valet:refresh', refreshHandler);
         })
     );
 
-    context.subscriptions.push(
-        vscode.window.createTreeView('laravel-valet-php-versions', {
-            treeDataProvider: phpVersionTreeProvider
-        })
-    )
-
-    context.subscriptions.push(
-        vscode.window.createTreeView('laravel-valet-paths', {
-            treeDataProvider: pathsTreeProvider,
-        })
-    )
+    info('Laravel Valet extension activated');
 }
 
 export function deactivate() { }

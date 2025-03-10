@@ -1,27 +1,19 @@
 import * as vscode from 'vscode';
+import { valet } from '../services';
+import { getEventBus } from '../support/event-bus';
+import { info } from '../support/logger';
+import type { ValetProject } from '../types/valet';
 
 export default class MainWebView implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
-    private _seachPayload: string = '';
-    private _projects: {
-        name: string,
-        link: string,
-        path: string,
-        version: string,
-        isCurrent: boolean
-    }[] | undefined;
-    private _currentProjects: {
-        name: string,
-        link: string,
-        path: string,
-        version: string,
-        isCurrent: boolean
-    }[] | undefined;
+    private _searchPayload = '';
+    private _projects: ValetProject[] | undefined;
+    private _currentProjects: ValetProject[] | undefined;
     private _context: vscode.ExtensionContext;
 
-    constructor(projects: any, context: vscode.ExtensionContext) {
+    constructor(projects: ValetProject[], context: vscode.ExtensionContext) {
         this._projects = projects;
-        this._currentProjects = projects?.filter((project: any) => project.isCurrent);
+        this._currentProjects = projects?.filter((project) => project.isCurrent);
         this._context = context;
     }
 
@@ -31,70 +23,75 @@ export default class MainWebView implements vscode.WebviewViewProvider {
         this._view.webview.options = {
             enableScripts: true
         };
+
+        // Handle VSCode's built-in refresh button
+        webviewView.onDidChangeVisibility(() => getEventBus().emit('valet:refresh', undefined));
         this._view.webview.onDidReceiveMessage(
-            data => {
-                const currentProject = this._projects?.filter(project => project.name == data.payload)[0];
+            async data => {
+                const currentProject = this._projects?.filter(project => project.name === data.payload)[0];
                 switch (data.command) {
                     case 'linkProject':
-                        vscode.commands.executeCommand('laravel-valet.link');
+                        void valet.link();
                         break;
 
                     case 'unlink':
-                        vscode.commands.executeCommand('laravel-valet.unlink', currentProject);
+                        void valet.unlink(currentProject);
                         break;
 
                     case 'secure':
-                        vscode.commands.executeCommand('laravel-valet.secure', currentProject);
+                        void valet.secure(currentProject);
                         break;
 
                     case 'unsecure':
-                        vscode.commands.executeCommand('laravel-valet.unsecure', currentProject);
+                        void valet.unsecure(currentProject);
                         break;
 
                     case 'isolate':
-                        vscode.commands.executeCommand('laravel-valet.isolate', currentProject);
+                        void valet.isolate(currentProject);
                         break;
 
                     case 'searchProjects':
-                        this._seachPayload = data.payload;
+                        info(`Searching projects for: "${data.payload}"`);
+                        this._searchPayload = data.payload;
                         this._search(data.payload);
                         break;
 
                     case 'open':
-                        vscode.commands.executeCommand('laravel-valet.openPath', currentProject);
+                        if (currentProject) {
+                            void vscode.commands.executeCommand('vscode.openFolder',
+                                vscode.Uri.file(currentProject.path)
+                            );
+                        }
                         break;
                 }
             },
             undefined,
             this._context.subscriptions
-        )
+        );
         this._view.webview.html = this._getHtmlForWebview();
     }
 
-    public updateAndRefresh(projects: any) {
-        // Update the data
+    public updateAndRefresh(projects: ValetProject[]) {
         this._projects = projects;
-        this._currentProjects = projects?.filter((project: any) => project.isCurrent);
+        this._currentProjects = projects?.filter((project) => project.isCurrent);
 
-        // Refresh the WebView's HTML
         if (this._view) {
             this._view.webview.html = this._getHtmlForWebview();
-            if (this._seachPayload != '') {
-                this._search(this._seachPayload);
+            if (this._searchPayload !== '') {
+                this._search(this._searchPayload);
             }
         }
     }
 
     private _getHtmlForWebview(): string {
-        let html: string = this._getStyle();
+        let html = this._getStyle();
 
-        if (this._currentProjects != undefined && this._currentProjects?.length > 0) {
-            html += `<ul class="project-list">`;
-            this._currentProjects.forEach((project) => {
+        if (this._currentProjects && this._currentProjects.length > 0) {
+            html += '<ul class="project-list">';
+            for (const project of this._currentProjects) {
                 html += this._getProjectItemHtml(project);
-            });
-            html += `</ul>`;
-
+            }
+            html += '</ul>';
         } else {
             html += `
                 <p>This project doesn't exist in the list.</p>
@@ -109,31 +106,43 @@ export default class MainWebView implements vscode.WebviewViewProvider {
     }
 
     private _search(value: string) {
-        let html = `<ul class="project-list search">`;
+        let html = '<ul class="project-list search">';
+        let matchCount = 0;
 
-        if (value != '') {
-            this._projects?.filter(project => project.name.includes(value)).forEach(project => {
-                html += this._getProjectItemHtml(project, true);
-            });
+        if (value !== '') {
+            const searchTerm = value.toLowerCase();
+            const filteredProjects = this._projects?.filter(project =>
+                project.name.toLowerCase().includes(searchTerm)
+            );
+
+            if (filteredProjects) {
+                matchCount = filteredProjects.length;
+                for (const project of filteredProjects) {
+                    html += this._getProjectItemHtml(project, true);
+                }
+            }
         }
 
-        html += `</ul>`;
+        html += '</ul>';
 
+        info(`Found ${matchCount} projects matching "${value}"`);
         this._view?.webview.postMessage({ command: 'searching-done', payload: html });
     }
 
     private _getSearchbarHtml(): string {
         return `
-            <input placeholder='Search valet projects...' class='valet-search-input' onkeyup="searchData(this)" value="${this._seachPayload}" />
+            <input placeholder='Search valet projects...' class='valet-search-input' onkeyup="searchData(this)" value="${this._searchPayload}" />
         `;
     }
 
-    private _getProjectItemHtml(project: any, openFolder: boolean = false): string {
-        const secureBtn = project.link.includes('https') ?
-            `<a class='valet-btn' onclick="doAction('unsecure', '${project.name}')">Unsecure</a>` :
-            `<a class='valet-btn' onclick="doAction('secure', '${project.name}')">Secure</a>`;
+    private _getProjectItemHtml(project: ValetProject, openFolder = false): string {
+        const secureBtn = project.link.includes('https')
+            ? `<a class='valet-btn' onclick="doAction('unsecure', '${project.name}')">Unsecure</a>`
+            : `<a class='valet-btn' onclick="doAction('secure', '${project.name}')">Secure</a>`;
 
-        const openFolderBtn = openFolder ? `<a class='valet-btn' onclick="doAction('open', '${project.name}')">Open folder</a>` : '';
+        const openFolderBtn = openFolder
+            ? `<a class='valet-btn' onclick="doAction('open', '${project.name}')">Open folder</a>`
+            : '';
 
         return `
                 <li class="project-item">
@@ -147,7 +156,7 @@ export default class MainWebView implements vscode.WebviewViewProvider {
                         ${openFolderBtn}
                     </div>
                 </li>
-                `
+                `;
     }
 
     private _getStyle(): string {
@@ -268,9 +277,9 @@ export default class MainWebView implements vscode.WebviewViewProvider {
                 window.addEventListener('message', event => {
                     switch (event.data.command) {
                         case 'searching-done':
-                            const searchContainer = document.getElementsByClassName('search')
+                            const searchContainer = document.getElementsByClassName('search');
                             if (searchContainer.length > 0) {
-                                searchContainer[0].remove()
+                                searchContainer[0].remove();
                             }
 
                             const projectSearchInput = document.getElementsByClassName('valet-search-input')[0];

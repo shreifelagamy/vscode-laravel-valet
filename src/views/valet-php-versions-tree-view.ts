@@ -1,14 +1,11 @@
-import * as path from 'path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
-import ValetCommonTreeView from './ValetCommonTreeView';
+import type { ValetProject } from '../types/valet';
+import ValetCommonTreeView from './valet-common-tree-view';
 
 export default class ValetPHPVersionsTreeView extends ValetCommonTreeView implements vscode.TreeDataProvider<Dependency> {
-    private _onDidChangeTreeData: vscode.EventEmitter<Dependency | undefined | void> = new vscode.EventEmitter<Dependency | undefined | void>();
-    readonly onDidChangeTreeData: vscode.Event<Dependency | undefined | void> = this._onDidChangeTreeData.event;
-
-    constructor(projectsList: any) {
-        super(projectsList);
-    }
+    private _onDidChangeTreeData: vscode.EventEmitter<Dependency | undefined> = new vscode.EventEmitter<Dependency | undefined>();
+    readonly onDidChangeTreeData: vscode.Event<Dependency | undefined> = this._onDidChangeTreeData.event;
 
     refresh(): void {
         this._onDidChangeTreeData.fire();
@@ -24,13 +21,15 @@ export default class ValetPHPVersionsTreeView extends ValetCommonTreeView implem
                 viewId: 'laravel-valet-php-versions'
             },
             title: "Loading PHP versions...",
-        }, async (progress) => {
+        }, async () => {
             return new Promise((resolve) => {
-                let versions: Dependency[] = [];
+                const versions: Dependency[] = [];
 
-                this._projectslist?.forEach(project => {
-                    versions?.push(new Dependency(project.name, project.version, vscode.TreeItemCollapsibleState.None));
-                });
+                if (this._projectslist) {
+                    for (const project of this._projectslist) {
+                        versions.push(new Dependency(project.name, project.version, vscode.TreeItemCollapsibleState.None));
+                    }
+                }
 
                 resolve(versions);
             });
