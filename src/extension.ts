@@ -9,7 +9,7 @@ import ValetPathsTreeView from './views/valet-paths-tree-view';
 import ValetPHPVersionsTreeView from './views/valet-php-versions-tree-view';
 
 export async function activate(context: vscode.ExtensionContext) {
-    let projects = await getValetProjects();
+    let projects = await getValetProjects() || [];
 
     // Register Commands
     registerCommands(context);
@@ -33,13 +33,11 @@ export async function activate(context: vscode.ExtensionContext) {
     // Set up refresh listener
     const eventBus = getEventBus();
     const refreshHandler = async () => {
-        projects = await getValetProjects();
-        if (projects) {
-            mainProvider.updateAndRefresh(projects);
-            linksProvider.reassignProjects(projects);
-            pathsProvider.reassignProjects(projects);
-            phpVersionsProvider.reassignProjects(projects);
-        }
+        projects = await getValetProjects() || [];
+        mainProvider.updateAndRefresh(projects);
+        linksProvider.reassignProjects(projects);
+        pathsProvider.reassignProjects(projects);
+        phpVersionsProvider.reassignProjects(projects);
     };
     eventBus.on('valet:refresh', refreshHandler);
 

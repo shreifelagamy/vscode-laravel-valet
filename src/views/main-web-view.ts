@@ -47,7 +47,9 @@ export default class MainWebView implements vscode.WebviewViewProvider {
                         break;
 
                     case 'isolate':
-                        void valet.isolate(currentProject);
+                        if (currentProject) {
+                            void valet.isolate(currentProject);
+                        }
                         break;
 
                     case 'searchProjects':

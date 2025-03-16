@@ -19,32 +19,10 @@ export default class ValetLinksTreeView extends ValetCommonTreeView implements v
             })
         );
 
-        const eventBus = getEventBus();
-
-        // Listen to events
-        const refreshHandler = () => this.refresh();
-        eventBus.on('valet:refresh', refreshHandler);
-
-        const projectLinkedHandler = ({ path }: { path: string }) => {
-            this.refresh();
-        };
-        eventBus.on('project:linked', projectLinkedHandler);
-
-        const projectUnlinkedHandler = ({ path }: { path: string }) => {
-            this.refresh();
-        };
-        eventBus.on('project:unlinked', projectUnlinkedHandler);
-
-        // Store cleanup functions
-        this.disposables.push(new vscode.Disposable(() => {
-            eventBus.off('valet:refresh', refreshHandler);
-            eventBus.off('project:linked', projectLinkedHandler);
-            eventBus.off('project:unlinked', projectUnlinkedHandler);
-        }));
     }
 
     refresh(): void {
-        this._onDidChangeTreeData.fire();
+        this._onDidChangeTreeData.fire(undefined);
     }
 
     getTreeItem(element: Dependency): vscode.TreeItem {

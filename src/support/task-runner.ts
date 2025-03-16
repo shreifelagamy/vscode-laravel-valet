@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { info, error, show } from './logger';
+import { info, error as logError, show } from './logger';
 
 /**
  * Options for running a task
@@ -122,7 +122,7 @@ export async function runTaskSafely(taskName: string, command: string, options: 
         const errorMessage = error instanceof Error
             ? `Task "${taskName}" failed: ${error.message}`
             : `An unknown error occurred while executing task "${taskName}"`;
-        error(errorMessage);
+        logError(errorMessage);
         showErrorWithOutput(errorMessage);
         return false;
     }

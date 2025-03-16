@@ -4,9 +4,6 @@
 
 export type EventMap = {
     'valet:refresh': undefined;
-    'project:linked': { path: string };
-    'project:unlinked': { path: string };
-    'php:version-changed': { version: string };
 }
 
 export class EventBus<T extends Record<string, unknown>> {

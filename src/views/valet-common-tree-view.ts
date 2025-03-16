@@ -1,3 +1,4 @@
+import { getEventBus } from '../support/event-bus';
 import type { ValetProject } from '../types/valet';
 
 export default class ValetCommonTreeView {
@@ -5,6 +6,10 @@ export default class ValetCommonTreeView {
 
     constructor(projectsList: ValetProject[]) {
         this._projectslist = projectsList;
+
+        getEventBus().on('valet:refresh', () => {
+            this.refresh();
+        });
     }
 
     reassignProjects(projectsList: ValetProject[]) {

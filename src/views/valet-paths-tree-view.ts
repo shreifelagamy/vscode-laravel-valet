@@ -7,7 +7,7 @@ export default class ValetPathsTreeView extends ValetCommonTreeView implements v
     readonly onDidChangeTreeData: vscode.Event<Dependency | undefined> = this._onDidChangeTreeData.event;
 
     refresh(): void {
-        this._onDidChangeTreeData.fire();
+        this._onDidChangeTreeData.fire(undefined);
     }
 
     getTreeItem(element: Dependency): vscode.TreeItem {
