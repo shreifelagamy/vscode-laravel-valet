@@ -72,7 +72,7 @@ export async function runTask(taskName: string, command: string, options: TaskOp
                         resolve();
                     } else {
                         const errorMessage = `Task "${taskName}" failed with exit code ${e.exitCode}`;
-                        error(errorMessage);
+                        logError(errorMessage);
                         reject(new Error(errorMessage));
                     }
                 }
@@ -97,7 +97,7 @@ export async function runTask(taskName: string, command: string, options: TaskOp
                     throw error;
                 }
                 const errorMessage = `An unknown error occurred while executing task "${taskName}"`;
-                error(errorMessage);
+                logError(errorMessage);
                 showErrorWithOutput(errorMessage);
                 throw new Error(errorMessage);
             }

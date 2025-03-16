@@ -1,7 +1,7 @@
 import { getEventBus } from '../support/event-bus';
 import type { ValetProject } from '../types/valet';
 
-export default class ValetCommonTreeView {
+export default abstract class ValetCommonTreeView {
     protected _projectslist: ValetProject[] | undefined;
 
     constructor(projectsList: ValetProject[]) {
@@ -17,4 +17,6 @@ export default class ValetCommonTreeView {
 
         return this;
     }
+
+    protected abstract refresh(): void;
 }

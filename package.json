@@ -9,8 +9,17 @@
         "vscode": "^1.84.0"
     },
     "categories": [
-        "Other"
+        "Other",
+        "Visualization"
     ],
+    "keywords": [
+        "laravel",
+        "valet"
+    ],
+    "author": {
+        "name": "Shreif El-Agamy",
+        "url": "https://theshreif.dev"
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/shreifelagamy/vscode-laravel-valet.git"
